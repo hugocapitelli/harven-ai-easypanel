@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, Integer, Float, Text, ForeignKey, DateTime
+from sqlalchemy import Column, String, Integer, Float, Text, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class UserActivity(Base, UUIDPrimaryKeyMixin):
@@ -12,7 +12,7 @@ class UserActivity(Base, UUIDPrimaryKeyMixin):
     target_id = Column(String(36), nullable=True)
     target_title = Column(String(255), nullable=True)
     extra_metadata = Column("metadata", Text, nullable=True)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="activities")
@@ -61,7 +61,7 @@ class UserAchievement(Base, UUIDPrimaryKeyMixin):
     category = Column(String(100), nullable=True)
     points = Column(Integer, nullable=True, default=0)
     rarity = Column(String(50), nullable=True)
-    unlocked_at = Column(DateTime, server_default=_utcnow(), nullable=True)
+    unlocked_at = Column(DateTime, server_default=func.now(), nullable=True)
 
     def to_dict(self):
         result = {}
@@ -80,7 +80,7 @@ class Certificate(Base, UUIDPrimaryKeyMixin):
     course_id = Column(String(36), ForeignKey("courses.id"), nullable=True)
     course_title = Column(String(255), nullable=True)
     user_name = Column(String(255), nullable=True)
-    issued_at = Column(DateTime, server_default=_utcnow(), nullable=True)
+    issued_at = Column(DateTime, server_default=func.now(), nullable=True)
     certificate_number = Column(String(100), nullable=True)
 
     def to_dict(self):

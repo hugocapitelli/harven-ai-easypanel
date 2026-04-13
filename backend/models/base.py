@@ -6,15 +6,6 @@ import uuid
 # Detect database dialect from DATABASE_URL
 _db_url = os.getenv("DATABASE_URL", "")
 _is_postgres = _db_url.startswith("postgresql")
-_is_sqlite = _db_url.startswith("sqlite") or os.getenv("USE_SQLITE", "").lower() in ("1", "true", "yes")
-
-
-def _utcnow():
-    """Return the appropriate UTC timestamp function for the current DB."""
-    if _is_sqlite:
-        return text("(datetime('now'))")
-    # PostgreSQL (default)
-    return text("(now() at time zone 'utc')")
 
 
 def _genuuid():
@@ -30,8 +21,8 @@ class Base(DeclarativeBase):
 
 
 class TimestampMixin:
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
-    updated_at = Column(DateTime, server_default=_utcnow(), onupdate=func.now(), nullable=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=True)
 
 
 class UUIDPrimaryKeyMixin:

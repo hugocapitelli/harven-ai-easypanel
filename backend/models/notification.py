@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, Boolean, Text, ForeignKey, DateTime
+from sqlalchemy import Column, String, Boolean, Text, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class Notification(Base, UUIDPrimaryKeyMixin):
@@ -12,7 +12,7 @@ class Notification(Base, UUIDPrimaryKeyMixin):
     type = Column(String(50), nullable=True)
     link = Column(String(500), nullable=True)
     read = Column(Boolean, nullable=True, default=False)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="notifications")

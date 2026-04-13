@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, func
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class MoodleRating(Base, UUIDPrimaryKeyMixin):
@@ -9,7 +9,7 @@ class MoodleRating(Base, UUIDPrimaryKeyMixin):
     session_id = Column(String(36), ForeignKey("chat_sessions.id"), nullable=True)
     moodle_rating = Column(String(50), nullable=True)
     moodle_feedback = Column(Text, nullable=True)
-    rated_at = Column(DateTime, server_default=_utcnow(), nullable=True)
+    rated_at = Column(DateTime, server_default=func.now(), nullable=True)
 
     def to_dict(self):
         result = {c.name: getattr(self, c.name) for c in self.__table__.columns}

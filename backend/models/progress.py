@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, UniqueConstraint, DateTime, func
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class CourseProgress(Base, UUIDPrimaryKeyMixin):
@@ -14,7 +14,7 @@ class CourseProgress(Base, UUIDPrimaryKeyMixin):
     completed_contents = Column(Integer, nullable=True, default=0)
     total_contents = Column(Integer, nullable=True, default=0)
     last_accessed = Column(DateTime, nullable=True)
-    updated_at = Column(DateTime, server_default=_utcnow(), onupdate=func.now(), nullable=True)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=True)
 
     def to_dict(self):
         result = {c.name: getattr(self, c.name) for c in self.__table__.columns}

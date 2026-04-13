@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Date, ForeignKey, UniqueConstraint, text
+from sqlalchemy import Column, String, Integer, Date, ForeignKey, UniqueConstraint, func
 from .base import Base, UUIDPrimaryKeyMixin
 
 
@@ -10,7 +10,7 @@ class TokenUsage(Base, UUIDPrimaryKeyMixin):
 
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     tokens_used = Column(Integer, nullable=True, default=0)
-    usage_date = Column(Date, server_default=text("CURRENT_DATE"), nullable=False)
+    usage_date = Column(Date, server_default=func.current_date(), nullable=False)
 
     def to_dict(self):
         result = {c.name: getattr(self, c.name) for c in self.__table__.columns}

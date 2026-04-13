@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, Integer, Text, DateTime
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from sqlalchemy import Column, String, Integer, Text, DateTime, func
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class IntegrationLog(Base, UUIDPrimaryKeyMixin):
@@ -11,7 +11,7 @@ class IntegrationLog(Base, UUIDPrimaryKeyMixin):
     status = Column(String(20), nullable=True)
     records_processed = Column(Integer, nullable=True, default=0)
     error_message = Column(Text, nullable=True)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     def to_dict(self):
         result = {c.name: getattr(self, c.name) for c in self.__table__.columns}

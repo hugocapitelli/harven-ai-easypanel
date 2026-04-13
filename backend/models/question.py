@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, String, Text, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class Question(Base, UUIDPrimaryKeyMixin):
@@ -12,7 +12,7 @@ class Question(Base, UUIDPrimaryKeyMixin):
     difficulty = Column(String(20), nullable=True)
     status = Column(String(20), nullable=True, default="active")
     extra_metadata = Column("metadata", Text, nullable=True)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     # Relationships
     content = relationship("Content", back_populates="questions")

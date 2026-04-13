@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, DateTime
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from sqlalchemy import Column, String, DateTime, func
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class ExternalMapping(Base, UUIDPrimaryKeyMixin):
@@ -9,7 +9,7 @@ class ExternalMapping(Base, UUIDPrimaryKeyMixin):
     local_id = Column(String(36), nullable=False)
     external_id = Column(String(255), nullable=False)
     external_system = Column(String(50), nullable=False)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     def to_dict(self):
         result = {c.name: getattr(self, c.name) for c in self.__table__.columns}

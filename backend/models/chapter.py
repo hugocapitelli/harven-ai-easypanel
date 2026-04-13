@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class Chapter(Base, UUIDPrimaryKeyMixin):
@@ -10,7 +10,7 @@ class Chapter(Base, UUIDPrimaryKeyMixin):
     title = Column(String(255), nullable=False)
     description = Column(String(2000), nullable=True)
     order = Column(Integer, nullable=True, default=0)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     # Relationships
     course = relationship("Course", back_populates="chapters")

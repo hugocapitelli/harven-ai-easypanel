@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, Text, ForeignKey, DateTime
+from sqlalchemy import Column, String, Integer, Float, Boolean, Text, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class ChatSession(Base, UUIDPrimaryKeyMixin):
@@ -13,7 +13,7 @@ class ChatSession(Base, UUIDPrimaryKeyMixin):
     status = Column(String(20), nullable=True, default="active")
     total_messages = Column(Integer, nullable=True, default=0)
     performance_score = Column(Float, nullable=True)
-    started_at = Column(DateTime, server_default=_utcnow(), nullable=True)
+    started_at = Column(DateTime, server_default=func.now(), nullable=True)
     moodle_user_id = Column(String(100), nullable=True)
     moodle_activity_id = Column(String(100), nullable=True)
     synced_to_moodle = Column(Boolean, nullable=True, default=False)
@@ -27,7 +27,7 @@ class ChatSession(Base, UUIDPrimaryKeyMixin):
     score = Column(Float, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     moodle_export_id = Column(String(255), nullable=True)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="chat_sessions")
@@ -52,7 +52,7 @@ class ChatMessage(Base, UUIDPrimaryKeyMixin):
     content = Column(Text, nullable=False)
     agent_type = Column(String(50), nullable=True)
     extra_metadata = Column("metadata", Text, nullable=True)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     # Relationships
     session = relationship("ChatSession", back_populates="messages")

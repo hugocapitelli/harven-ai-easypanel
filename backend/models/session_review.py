@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class SessionReview(Base, UUIDPrimaryKeyMixin):
@@ -10,8 +10,8 @@ class SessionReview(Base, UUIDPrimaryKeyMixin):
     instructor_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
     rating = Column(Integer, nullable=False)
     status = Column(String(20), nullable=False, default="pending_student")
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
-    updated_at = Column(DateTime, server_default=_utcnow(), onupdate=func.now(), nullable=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=True)
 
     # Relationships
     session = relationship("ChatSession", backref="review", uselist=False)

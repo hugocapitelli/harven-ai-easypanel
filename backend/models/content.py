@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, Integer, Text, ForeignKey, DateTime
+from sqlalchemy import Column, String, Integer, Text, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
-from .base import Base, UUIDPrimaryKeyMixin, _utcnow
+from .base import Base, UUIDPrimaryKeyMixin
 
 
 class Content(Base, UUIDPrimaryKeyMixin):
@@ -15,7 +15,7 @@ class Content(Base, UUIDPrimaryKeyMixin):
     audio_url = Column(String(500), nullable=True)
     duration = Column(Integer, nullable=True)
     order = Column(Integer, nullable=True, default=0)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     # Relationships
     chapter = relationship("Chapter", back_populates="contents")

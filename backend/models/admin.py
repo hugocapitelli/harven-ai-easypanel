@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, Text, DateTime
-from .base import Base, TimestampMixin, UUIDPrimaryKeyMixin, _utcnow
+from sqlalchemy import Column, String, Integer, Float, Boolean, Text, DateTime, func
+from .base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class SystemSettings(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -95,7 +95,7 @@ class SystemLog(Base, UUIDPrimaryKeyMixin):
     status = Column(String(50), nullable=True)
     type = Column(String(50), nullable=True)
     color = Column(String(20), nullable=True)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     def to_dict(self):
         result = {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -115,7 +115,7 @@ class SystemBackup(Base, UUIDPrimaryKeyMixin):
     records = Column(Integer, nullable=True)
     storage_path = Column(String(500), nullable=True)
     created_by = Column(String(255), nullable=True)
-    created_at = Column(DateTime, server_default=_utcnow(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     def to_dict(self):
         result = {c.name: getattr(self, c.name) for c in self.__table__.columns}
