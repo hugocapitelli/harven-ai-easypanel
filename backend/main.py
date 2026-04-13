@@ -901,10 +901,10 @@ async def get_system_settings(request: Request, user=Depends(require_role("ADMIN
         return SystemSettings()
 
 @app.post("/admin/settings", tags=["Admin - Settings"], summary="Salvar configurações do sistema")
-async def save_system_settings(settings: SystemSettings, user=Depends(require_role("ADMIN")), db: Session = Depends(get_db)):
+async def save_system_settings(settings: dict, user=Depends(require_role("ADMIN")), db: Session = Depends(get_db)):
     """Salva ou atualiza as configurações do sistema (apenas admin)."""
     try:
-        data = settings.model_dump()
+        data = dict(settings)
 
         # Fetch current settings to preserve sensitive fields and discover DB columns
         check = db_table(db, "system_settings").select("*").limit(1).execute()
