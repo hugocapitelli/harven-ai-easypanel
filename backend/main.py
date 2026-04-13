@@ -17,7 +17,7 @@ from fastapi import FastAPI, HTTPException, Depends, Header, UploadFile, File, F
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -774,6 +774,17 @@ async def get_admin_logs(request: Request, user=Depends(require_role("ADMIN")), 
 # Modelo de Configurações do Sistema
 class SystemSettings(BaseModel):
     model_config = {"extra": "ignore"}
+
+    @model_validator(mode='before')
+    @classmethod
+    def _coerce_nulls(cls, data):
+        """Strip None values for non-Optional fields so Pydantic defaults apply.
+        Prevents 422 when frontend sends null (e.g. parseInt('') → NaN → JSON null)
+        or when DB columns contain NULL for int/bool fields."""
+        if not isinstance(data, dict):
+            return data
+        nullable_fields = {'moodle_last_sync', 'jacad_last_sync'}
+        return {k: v for k, v in data.items() if k in nullable_fields or v is not None}
 
     # Geral
     platform_name: str = "Harven.AI"

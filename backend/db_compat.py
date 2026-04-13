@@ -189,10 +189,10 @@ class TableQuery:
         # SELECT
         return self._do_select()
 
-    @staticmethod
-    def _sanitize_data(data: dict) -> dict:
-        """Sanitize insert/update data: resolve 'now()' strings and map column aliases."""
+    def _sanitize_data(self, data: dict) -> dict:
+        """Sanitize insert/update data: resolve 'now()' strings, map column aliases, coerce DateTime fields."""
         from datetime import datetime, timezone
+        from sqlalchemy import DateTime, inspect as sa_inspect
         COLUMN_ALIAS_MAP = {
             "metadata": "extra_metadata",
             "exported_at": "moodle_exported_at",
@@ -204,6 +204,21 @@ class TableQuery:
                 result[mapped_key] = datetime.now(timezone.utc)
             else:
                 result[mapped_key] = val
+
+        # Coerce ISO string values to datetime objects for DateTime columns
+        try:
+            mapper = sa_inspect(self.model)
+            for col in mapper.columns:
+                if isinstance(col.type, DateTime) and col.key in result:
+                    val = result[col.key]
+                    if isinstance(val, str):
+                        try:
+                            result[col.key] = datetime.fromisoformat(val.replace('Z', '+00:00'))
+                        except (ValueError, TypeError):
+                            pass
+        except Exception:
+            pass  # If inspection fails, skip coercion — don't break the flow
+
         return result
 
     def _do_insert(self):
