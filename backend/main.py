@@ -2958,9 +2958,8 @@ async def generate_questions(request: Request, body: QuestionGenerationRequest, 
 
         return result
 
-    except svc.AIServiceError as e:
-        logger.error(f"AI service error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in generate_questions: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -2980,15 +2979,14 @@ async def socratic_dialogue(request: Request, body: SocraticDialogueRequest, db:
             chapter_content=body.chapter_content,
             initial_question=body.initial_question,
             conversation_history=body.conversation_history or [],
-            interactions_remaining=body.interactions_remaining or 3,
+            interactions_remaining=body.interactions_remaining if body.interactions_remaining is not None else 3,
             session_id=body.session_id,
             chapter_id=body.chapter_id
         )
 
         return result
-    except svc.AIServiceError as e:
-        logger.error(f"AI service error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in socratic_dialogue: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3023,9 +3021,8 @@ async def edit_response(request: EditResponseRequest, db: Session = Depends(get_
             context=request.context
         )
         return result
-    except svc.AIServiceError as e:
-        logger.error(f"AI service error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in edit_response: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3045,9 +3042,8 @@ async def validate_response(request: ValidateResponseRequest, db: Session = Depe
         )
         return result
 
-    except svc.AIServiceError as e:
-        logger.error(f"AI service error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in validate_response: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")

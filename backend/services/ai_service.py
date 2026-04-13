@@ -239,9 +239,9 @@ Retorne um JSON válido conforme especificado no prompt."""
         result["metadata"]["processing_time_ms"] = processing_time
         result["metadata"]["model_used"] = DEFAULT_MODEL
         result["metadata"]["tokens_used"] = {
-            "prompt": response.usage.prompt_tokens,
-            "completion": response.usage.completion_tokens,
-            "total": response.usage.total_tokens
+            "prompt": response.usage.prompt_tokens if response.usage else 0,
+            "completion": response.usage.completion_tokens if response.usage else 0,
+            "total": response.usage.total_tokens if response.usage else 0
         }
 
         return result
@@ -352,9 +352,9 @@ async def socratic_dialogue(
                 "processing_time_ms": processing_time,
                 "model_used": DEFAULT_MODEL,
                 "tokens_used": {
-                    "prompt": response.usage.prompt_tokens,
-                    "completion": response.usage.completion_tokens,
-                    "total": response.usage.total_tokens
+                    "prompt": response.usage.prompt_tokens if response.usage else 0,
+                    "completion": response.usage.completion_tokens if response.usage else 0,
+                    "total": total_tokens
                 }
             }
         }
@@ -557,9 +557,9 @@ Retorne APENAS o texto editado (2 parágrafos), sem JSON ou metadados."""
             "processing_time_ms": processing_time,
             "model_used": DEFAULT_MODEL,
             "tokens_used": {
-                "prompt": response.usage.prompt_tokens,
-                "completion": response.usage.completion_tokens,
-                "total": response.usage.total_tokens
+                "prompt": response.usage.prompt_tokens if response.usage else 0,
+                "completion": response.usage.completion_tokens if response.usage else 0,
+                "total": response.usage.total_tokens if response.usage else 0
             }
         }
 
