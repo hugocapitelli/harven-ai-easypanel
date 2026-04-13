@@ -28,25 +28,35 @@ if not DATABASE_URL:
         print(f"✓ DATABASE_URL constructed from SUPABASE_URL (ref={ref})")
 
 if not DATABASE_URL:
-    print("⚠ DATABASE_URL not set — running without database (SQLite fallback or in-memory)")
+    print("⚠ DATABASE_URL not set — will use SQLite fallback")
 
 engine = None
 SessionLocal = None
 _using_sqlite = False
 
 if DATABASE_URL:
-    engine = create_engine(
-        DATABASE_URL,
-        pool_size=5,
-        max_overflow=10,
-        pool_timeout=30,
-        pool_recycle=1800,
-        pool_pre_ping=True,
-        echo=False,
-    )
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    print(f"✓ Database: PostgreSQL (pool_pre_ping=True)")
-elif os.getenv("USE_SQLITE", "").lower() in ("1", "true", "yes"):
+    try:
+        engine = create_engine(
+            DATABASE_URL,
+            pool_size=5,
+            max_overflow=10,
+            pool_timeout=30,
+            pool_recycle=1800,
+            pool_pre_ping=True,
+            echo=False,
+        )
+        # Test connection immediately
+        with engine.connect() as conn:
+            conn.execute(__import__('sqlalchemy').text("SELECT 1"))
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        print(f"✓ Database: PostgreSQL connected")
+    except Exception as e:
+        print(f"⚠ PostgreSQL connection failed: {e}")
+        print("⚠ Falling back to SQLite")
+        engine = None
+        DATABASE_URL = None
+
+if not engine and (not DATABASE_URL or os.getenv("USE_SQLITE", "").lower() in ("1", "true", "yes") or not DATABASE_URL):
     # Local SQLite for testing
     _db_path = os.path.join(os.path.dirname(__file__), "local_test.db")
     engine = create_engine(f"sqlite:///{_db_path}", echo=False)
