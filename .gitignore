@@ -1,7 +1,6 @@
 .env.production
 
 # Environment & Secrets (AIOS)
-.env
 .env.local
 .env.*.local
 *.key
