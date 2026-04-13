@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO & Title -->
+  <title>Harven.ai - Plataforma de Aprendizado Inteligente</title>
+  <meta name="description" content="Harven.ai - Plataforma educacional com inteligência artificial para aprendizado personalizado e eficiente." />
+  <meta name="author" content="Harven.ai" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://harven.eximiaventures.com.br/" />
+  <meta property="og:title" content="Harven.ai - Plataforma de Aprendizado Inteligente" />
+  <meta property="og:description" content="Transforme seu aprendizado com inteligência artificial. Cursos personalizados, tutoria socrática e análise de progresso em tempo real." />
+  <meta property="og:image" content="https://harven.eximiaventures.com.br/og-image.png" />
+  <meta property="og:site_name" content="Harven.ai" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://harven.eximiaventures.com.br/" />
+  <meta name="twitter:title" content="Harven.ai - Plataforma de Aprendizado Inteligente" />
+  <meta name="twitter:description" content="Transforme seu aprendizado com inteligência artificial. Cursos personalizados, tutoria socrática e análise de progresso em tempo real." />
+  <meta name="twitter:image" content="https://harven.eximiaventures.com.br/og-image.png" />
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#1c2d1b" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&family=Noto+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script>
+    // Initialize Theme
+    if (localStorage.getItem('harven-theme') === 'dark' || (!('harven-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
