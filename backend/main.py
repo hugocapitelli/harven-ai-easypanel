@@ -930,6 +930,11 @@ async def save_system_settings(settings: dict, user=Depends(require_role("ADMIN"
             known_columns = set(current.keys())
             data = {k: v for k, v in data.items() if k in known_columns}
             data["id"] = current['id']
+            # Preserve existing URL fields — don't overwrite with empty strings
+            url_fields = {'logo_url', 'login_logo_url', 'login_bg_url', 'image_url', 'avatar_url'}
+            for field in url_fields:
+                if field in data and data[field] in ('', None) and current.get(field):
+                    data[field] = current[field]
         else:
             data["id"] = str(uuid.uuid4())
 
