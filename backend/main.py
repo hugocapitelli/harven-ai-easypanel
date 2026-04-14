@@ -2893,6 +2893,19 @@ class OrganizeSessionRequest(BaseModel):
 from services.ai_service import AIServiceError
 ai_service = None
 
+def _sanitize_ai_error(e: AIServiceError) -> str:
+    """Remove fragmentos de API key e detalhes internos da mensagem de erro."""
+    msg = str(e)
+    if "401" in msg or "api_key" in msg.lower() or "incorrect api key" in msg.lower():
+        return "OpenAI API key inválida ou expirada. Verifique OPENAI_API_KEY no .env"
+    if "429" in msg or "rate_limit" in msg.lower():
+        return "Rate limit da OpenAI atingido. Tente novamente em alguns minutos."
+    if "MOCK_MODE" in msg:
+        return "AI service em modo simulação (chave placeholder configurada)"
+    if "timeout" in msg.lower() or "connection" in msg.lower():
+        return "Falha de conexão com a OpenAI. Tente novamente."
+    return "Erro no serviço de IA. Verifique configuração."
+
 def get_ai_service():
     global ai_service
     if ai_service is None:
@@ -2972,7 +2985,7 @@ async def generate_questions(request: Request, body: QuestionGenerationRequest, 
     except HTTPException:
         raise
     except AIServiceError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=_sanitize_ai_error(e))
     except Exception as e:
         logger.error(f"Error in generate_questions: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3001,7 +3014,7 @@ async def socratic_dialogue(request: Request, body: SocraticDialogueRequest, db:
     except HTTPException:
         raise
     except AIServiceError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=_sanitize_ai_error(e))
     except Exception as e:
         logger.error(f"Error in socratic_dialogue: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3019,7 +3032,7 @@ async def detect_ai_content(request: AIDetectionRequest, db: Session = Depends(g
         )
         return result
     except AIServiceError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=_sanitize_ai_error(e))
     except Exception as e:
         logger.error(f"Error in detect_ai_content: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3041,7 +3054,7 @@ async def edit_response(request: EditResponseRequest, db: Session = Depends(get_
     except HTTPException:
         raise
     except AIServiceError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=_sanitize_ai_error(e))
     except Exception as e:
         logger.error(f"Error in edit_response: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3064,7 +3077,7 @@ async def validate_response(request: ValidateResponseRequest, db: Session = Depe
     except HTTPException:
         raise
     except AIServiceError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=_sanitize_ai_error(e))
     except Exception as e:
         logger.error(f"Error in validate_response: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")

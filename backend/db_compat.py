@@ -409,9 +409,20 @@ class TableQuery:
     def _to_dict(self, obj):
         if obj is None:
             return None
-        if hasattr(obj, 'to_dict'):
-            return obj.to_dict()
-        return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+        from sqlalchemy import inspect as sa_inspect
+        result = {}
+        try:
+            mapper = sa_inspect(type(obj))
+            for attr in mapper.column_attrs:
+                val = getattr(obj, attr.key, None)
+                if hasattr(val, 'isoformat'):
+                    val = val.isoformat()
+                result[attr.columns[0].name] = val
+        except Exception:
+            if hasattr(obj, 'to_dict'):
+                return obj.to_dict()
+            return {c.name: getattr(obj, c.name, None) for c in obj.__table__.columns}
+        return result
 
 
 class RpcCaller:
