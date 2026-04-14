@@ -190,7 +190,8 @@ class TableQuery:
         return self._do_select()
 
     def _sanitize_data(self, data: dict) -> dict:
-        """Sanitize insert/update data: resolve 'now()' strings, map column aliases, coerce DateTime fields."""
+        """Sanitize insert/update data: resolve 'now()' strings, map column aliases, coerce DateTime fields, serialize dicts."""
+        import json as _json
         from datetime import datetime, timezone
         from sqlalchemy import DateTime, inspect as sa_inspect
         COLUMN_ALIAS_MAP = {
@@ -202,6 +203,8 @@ class TableQuery:
             mapped_key = COLUMN_ALIAS_MAP.get(key, key)
             if val == "now()":
                 result[mapped_key] = datetime.now(timezone.utc)
+            elif isinstance(val, (dict, list)):
+                result[mapped_key] = _json.dumps(val, ensure_ascii=False)
             else:
                 result[mapped_key] = val
 

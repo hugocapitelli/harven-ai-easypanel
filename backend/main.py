@@ -1452,10 +1452,13 @@ class UserCreate(BaseModel):
     @field_validator('role')
     @classmethod
     def validate_role(cls, v: str) -> str:
-        valid = {'student', 'teacher', 'admin', 'instructor'}
-        if v.lower() not in valid:
+        normalized = v.upper()
+        if normalized == 'TEACHER':
+            normalized = 'INSTRUCTOR'
+        valid = {'STUDENT', 'INSTRUCTOR', 'ADMIN'}
+        if normalized not in valid:
             raise ValueError(f'Role inválido. Aceitos: {", ".join(valid)}')
-        return v.lower()
+        return normalized
 
 @app.get("/users", tags=["Users"], summary="Listar usuários")
 async def get_users(role: str = None, page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=100), current_user: dict = Depends(require_auth), db: Session = Depends(get_db)):
@@ -1704,9 +1707,10 @@ async def test_db(current_user: dict = Depends(require_role("ADMIN")), db: Sessi
 # Modelo para Criação de Curso
 class CourseCreate(BaseModel):
     title: str
-    instructor: str
-    category: str
     description: str = ""
+    instructor_id: Optional[str] = None
+    discipline_id: Optional[str] = None
+    image_url: Optional[str] = None
 
 # Modelo para Criação de Disciplina via Classes (estrutura similar a CourseCreate)
 class ClassDisciplineCreate(BaseModel):
@@ -1776,16 +1780,17 @@ async def get_courses(user_id: Optional[str] = None, role: Optional[str] = None,
 async def create_course(course: CourseCreate, current_user: dict = Depends(require_role("INSTRUCTOR", "ADMIN")), db: Session = Depends(get_db)):
     """Cria um novo curso na plataforma."""
     try:
-        # Prepara dados (simulando campos default)
         data = {
             "title": course.title,
-            "instructor": course.instructor,
-            "category": course.category,
-            "progress": 0,
+            "description": course.description,
             "status": "Rascunho",
-            "total_modules": 0,
-            "image": "https://picsum.photos/seed/new/600/400" # Placeholder por enquanto
         }
+        if course.instructor_id:
+            data["instructor_id"] = course.instructor_id
+        if course.discipline_id:
+            data["discipline_id"] = course.discipline_id
+        if course.image_url:
+            data["image_url"] = course.image_url
         
         response = db_table(db, "courses").insert(data).execute()
         if not response.data:
@@ -2885,6 +2890,7 @@ class OrganizeSessionRequest(BaseModel):
     metadata: Optional[dict] = None
 
 # Importar serviço de IA (lazy load para evitar erro se OpenAI não configurada)
+from services.ai_service import AIServiceError
 ai_service = None
 
 def get_ai_service():
@@ -2965,6 +2971,8 @@ async def generate_questions(request: Request, body: QuestionGenerationRequest, 
 
     except HTTPException:
         raise
+    except AIServiceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         logger.error(f"Error in generate_questions: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -2992,6 +3000,8 @@ async def socratic_dialogue(request: Request, body: SocraticDialogueRequest, db:
         return result
     except HTTPException:
         raise
+    except AIServiceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         logger.error(f"Error in socratic_dialogue: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3008,6 +3018,8 @@ async def detect_ai_content(request: AIDetectionRequest, db: Session = Depends(g
             interaction_metadata=request.interaction_metadata
         )
         return result
+    except AIServiceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         logger.error(f"Error in detect_ai_content: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3028,6 +3040,8 @@ async def edit_response(request: EditResponseRequest, db: Session = Depends(get_
         return result
     except HTTPException:
         raise
+    except AIServiceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         logger.error(f"Error in edit_response: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3049,6 +3063,8 @@ async def validate_response(request: ValidateResponseRequest, db: Session = Depe
 
     except HTTPException:
         raise
+    except AIServiceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         logger.error(f"Error in validate_response: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
@@ -3085,12 +3101,29 @@ async def prepare_moodle_export(session_data: dict, db: Session = Depends(get_db
 
 # Endpoint: Estimar custo
 @app.get("/api/ai/estimate-cost", tags=["AI Services"], summary="Estimar custo de IA")
-async def estimate_cost(prompt_tokens: int, completion_tokens: int, model: str = "gpt-4o-mini", db: Session = Depends(get_db)):
-    """Estima custo de uma chamada de IA baseado nos tokens utilizados."""
+async def estimate_cost(
+    prompt_tokens: Optional[int] = None,
+    completion_tokens: Optional[int] = None,
+    text_length: Optional[int] = None,
+    model: str = "gpt-4o-mini",
+    db: Session = Depends(get_db)
+):
+    """Estima custo de uma chamada de IA baseado nos tokens utilizados ou no comprimento do texto."""
     try:
         svc = get_ai_service()
-        cost = svc.estimate_cost(prompt_tokens, completion_tokens, model)
-        return {"cost_usd": cost, "model": model}
+        if prompt_tokens is not None and completion_tokens is not None:
+            p_tokens = prompt_tokens
+            c_tokens = completion_tokens
+        elif text_length is not None:
+            # Estimativa: ~1 token por 4 caracteres (prompt), ~1/3 do prompt como completion
+            p_tokens = max(1, text_length // 4)
+            c_tokens = max(1, p_tokens // 3)
+        else:
+            raise HTTPException(status_code=422, detail="Informe prompt_tokens+completion_tokens ou text_length")
+        cost = svc.estimate_cost(p_tokens, c_tokens, model)
+        return {"cost_usd": cost, "model": model, "prompt_tokens": p_tokens, "completion_tokens": c_tokens}
+    except HTTPException:
+        raise
     except Exception as e:
         return {"cost_usd": 0, "error": str(e)}
 

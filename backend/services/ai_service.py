@@ -417,11 +417,13 @@ Retorne um JSON válido com a análise conforme especificado no prompt."""
 
         return result
 
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         # Fallback para análise heurística básica
         return _heuristic_ai_detection(student_message)
-    except Exception as e:
-        raise AIServiceError(f"Erro na chamada OpenAI: {e}")
+    except Exception:
+        # Fallback: se OpenAI falhar por qualquer razão (401, timeout, etc.),
+        # usar detecção heurística em vez de propagar erro
+        return _heuristic_ai_detection(student_message)
 
 
 def _heuristic_ai_detection(text: str) -> Dict[str, Any]:
